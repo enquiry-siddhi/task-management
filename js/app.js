@@ -114,10 +114,10 @@ function populateAssigneeDropdown() {
 
   // Determine who this user can assign to
   const isAdmin = currentUser.role === 'admin' || currentUser.auth === 'All Group';
-  let assignable = EMPLOYEES;
+  let assignable = getEmployees();
   if (!isAdmin) {
     // Managers can assign within their group
-    assignable = EMPLOYEES.filter(e =>
+    assignable = getEmployees().filter(e =>
       e.group === currentUser.group || e.id === currentUser.id
     );
   }
@@ -349,11 +349,11 @@ function filterTeamTasks() {
     return t;
   });
   if (!isAdmin) {
-    const myGroupMembers = EMPLOYEES.filter(e => e.group === currentUser.group).map(e => e.id);
+    const myGroupMembers = getEmployees().filter(e => e.group === currentUser.group).map(e => e.id);
     tasks = tasks.filter(t => myGroupMembers.includes(t.assignedTo));
   }
   if (filter !== 'all') {
-    const groupMembers = EMPLOYEES.filter(e => e.group === filter || e.auth.includes(filter)).map(e => e.id);
+    const groupMembers = getEmployees().filter(e => e.group === filter || e.auth.includes(filter)).map(e => e.id);
     tasks = tasks.filter(t => groupMembers.includes(t.assignedTo));
   }
   renderTasksView(tasks, 'team-task-container', teamTaskView);
@@ -782,9 +782,9 @@ function renderTeamMgmt() {
 
 function filterTeamMgmt() {
   const filter = document.getElementById('team-group-filter').value;
-  let emps = EMPLOYEES;
+  let emps = getEmployees();
   if (filter !== 'all') {
-    emps = EMPLOYEES.filter(e => e.group === filter || e.designation.includes(filter) || e.auth.includes(filter));
+    emps = getEmployees().filter(e => e.group === filter || e.designation.includes(filter) || e.auth.includes(filter));
   }
 
   const tasks = getTasks();
@@ -1331,7 +1331,7 @@ function getVisibleTasks() {
   let tasks = getTasks();
 
   if (!isAdmin) {
-    const myGroupIds = EMPLOYEES.filter(e => e.group === currentUser.group).map(e => e.id);
+    const myGroupIds = getEmployees().filter(e => e.group === currentUser.group).map(e => e.id);
     tasks = tasks.filter(t =>
       t.assignedTo === currentUser.id ||
       t.assignedBy === currentUser.id ||
