@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Siddhi Kabel – Daily Task Manager</title>
+  <meta name="description" content="Daily Task Manager for Siddhi Kabel Corporation Pvt Ltd – Manage tasks, teams, and deadlines efficiently." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/login.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/tasks.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+</head>
+<body>
+
+  <!-- LOGIN PAGE -->
+  <div id="login-page" class="page active">
+    <div class="login-bg">
+      <div class="login-orb orb1"></div>
+      <div class="login-orb orb2"></div>
+      <div class="login-orb orb3"></div>
+    </div>
+    <div class="login-card glass">
+      <div class="login-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="12" fill="url(#logoGrad)"/>
+            <path d="M12 20l6 6 10-12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <h1 class="company-name">Siddhi Kabel</h1>
+          <p class="company-sub">Corporation Pvt Ltd</p>
+        </div>
+      </div>
+      <h2 class="login-title">Daily Task Manager</h2>
+      <p class="login-subtitle">Sign in to manage your daily tasks</p>
+      <form id="login-form" class="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/>
+            </svg>
+            <input type="email" id="login-email" placeholder="your@siddhikabel.com" required autocomplete="username" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="login-pass">Password</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" id="login-pass" placeholder="••••••••" required autocomplete="current-password" />
+            <button type="button" class="toggle-pass" onclick="togglePass()">
+              <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="login-error" class="login-error hidden">Invalid email or password</div>
+        <button type="submit" class="btn-primary btn-full" id="login-btn">
+          <span>Sign In</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </form>
+      <p class="login-hint">Demo: Use any listed email with password <strong>siddhi123</strong></p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app-page" class="page hidden">
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="logo-icon small">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="40" height="40" rx="10" fill="url(#logoGrad2)"/>
+              <path d="M12 20l6 6 10-12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="logoGrad2" x1="0" y1="0" x2="40" y2="40">
+                  <stop offset="0%" stop-color="#6366f1"/>
+                  <stop offset="100%" stop-color="#8b5cf6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="sidebar-brand">
+            <span class="brand-name">Siddhi Kabel</span>
+            <span class="brand-tag">Task Manager</span>
+          </div>
+        </div>
+        <button class="sidebar-close" onclick="toggleSidebar()" id="sidebar-close-btn">✕</button>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" onclick="showSection('dashboard')" id="nav-dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" onclick="showSection('my-tasks')" id="nav-my-tasks">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>My Tasks</span>
+        </button>
+        <button class="nav-item" onclick="showSection('assign-task')" id="nav-assign-task">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Assign Task</span>
+        </button>
+        <button class="nav-item" onclick="showSection('team-tasks')" id="nav-team-tasks">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Team Tasks</span>
+        </button>
+        <button class="nav-item" onclick="showSection('calendar')" id="nav-calendar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Calendar</span>
+        </button>
+        <div class="nav-divider" id="admin-divider"></div>
+        <button class="nav-item admin-only hidden" onclick="showSection('all-tasks')" id="nav-all-tasks">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>All Tasks</span>
+        </button>
+        <button class="nav-item admin-only hidden" onclick="showSection('team-mgmt')" id="nav-team-mgmt">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Team Management</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar" id="sidebar-avatar">G</div>
+          <div class="user-info">
+            <span class="user-name" id="sidebar-name">Gurudatta</span>
+            <span class="user-role" id="sidebar-role">Director</span>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- OVERLAY -->
+    <div id="sidebar-overlay" class="sidebar-overlay hidden" onclick="toggleSidebar()"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <header class="topbar">
+        <button class="hamburger" onclick="toggleSidebar()" id="hamburger-btn">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-actions">
+          <button class="notif-btn" onclick="toggleNotifications()" id="notif-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-badge" id="notif-badge">3</span>
+          </button>
+          <div class="topbar-user">
+            <div class="user-avatar small" id="topbar-avatar">G</div>
+            <span id="topbar-name">Gurudatta</span>
+          </div>
+        </div>
+        <!-- Notification Dropdown -->
+        <div class="notif-dropdown hidden" id="notif-dropdown">
+          <div class="notif-header">Notifications</div>
+          <div id="notif-list"></div>
+        </div>
+      </header>
+
+      <!-- SECTIONS -->
+      <div class="sections-wrap">
+
+        <!-- DASHBOARD -->
+        <section id="section-dashboard" class="section active">
+          <div class="section-header">
+            <div>
+              <h2 id="dash-greeting">Good Morning! 👋</h2>
+              <p class="section-sub" id="dash-date">Monday, 23 March 2026</p>
+            </div>
+            <button class="btn-primary" onclick="showSection('assign-task')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Task
+            </button>
+          </div>
+          <!-- Stats -->
+          <div class="stats-grid" id="stats-grid"></div>
+          <!-- Charts Row -->
+          <div class="charts-row">
+            <div class="chart-card glass">
+              <h3>Task Status Overview</h3>
+              <canvas id="status-chart" width="300" height="220"></canvas>
+            </div>
+            <div class="chart-card glass">
+              <h3>Priority Breakdown</h3>
+              <canvas id="priority-chart" width="300" height="220"></canvas>
+            </div>
+          </div>
+          <!-- Recent Tasks -->
+          <div class="recent-tasks glass">
+            <div class="recent-header">
+              <h3>Recent Tasks</h3>
+              <button class="btn-ghost" onclick="showSection('my-tasks')">View All →</button>
+            </div>
+            <div id="recent-task-list"></div>
+          </div>
+        </section>
+
+        <!-- MY TASKS -->
+        <section id="section-my-tasks" class="section hidden">
+          <div class="section-header">
+            <div>
+              <h2>My Tasks</h2>
+              <p class="section-sub">Tasks assigned to you</p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <select id="my-task-filter" onchange="filterMyTasks()" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="overdue">Overdue</option>
+                        <option value="closed">Closed</option>
+              </select>
+              <select id="my-priority-filter" onchange="filterMyTasks()" class="filter-select">
+                <option value="all">All Priority</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+              <div class="view-switcher" id="my-view-switcher">
+                <button class="view-btn" id="my-view-list" onclick="setMyView('list')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  List
+                </button>
+                <button class="view-btn active" id="my-view-kanban" onclick="setMyView('kanban')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="11"/><rect x="17" y="3" width="4" height="15"/></svg>
+                  Kanban
+                </button>
+                <button class="view-btn" id="my-view-timeline" onclick="setMyView('timeline')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><polyline points="8 8 3 12 8 16"/><polyline points="16 8 21 12 16 16"/></svg>
+                  Timeline
+                </button>
+                <button class="view-btn" id="my-view-calendar" onclick="setMyView('calendar-tasks')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Calendar
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="my-task-container"></div>
+        </section>
+
+        <!-- ASSIGN TASK -->
+        <section id="section-assign-task" class="section hidden">
+          <div class="section-header">
+            <div>
+              <h2>Assign Task</h2>
+              <p class="section-sub">Create and assign a new task</p>
+            </div>
+          </div>
+          <div class="assign-form-wrap">
+            <form id="assign-form" onsubmit="submitTask(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Task Title *</label>
+                  <input type="text" id="task-title" placeholder="Enter task title..." required />
+                </div>
+                <div class="form-group">
+                  <label>Priority *</label>
+                  <select id="task-priority" required>
+                    <option value="">Select priority</option>
+                    <option value="high">🔴 High</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="low">🟢 Low</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Description</label>
+                <textarea id="task-desc" placeholder="Describe the task..." rows="3"></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Assign To *</label>
+                  <select id="task-assignee" required>
+                    <option value="">Select employee</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Category</label>
+                  <select id="task-category">
+                    <option value="General">General</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Accounts">Accounts</option>
+                    <option value="SCM/Logistics">SCM / Logistics</option>
+                    <option value="Offer Management">Offer Management</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Customer Complaint">Customer Complaint</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Due Date *</label>
+                  <input type="date" id="task-due" required />
+                </div>
+                <div class="form-group">
+                  <label>Due Time</label>
+                  <input type="time" id="task-time" value="17:00" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Remarks / Notes</label>
+                <textarea id="task-remarks" placeholder="Any additional notes..." rows="2"></textarea>
+              </div>
+
+              <!-- ATTACHMENTS -->
+              <div class="form-group">
+                <label>Attachments</label>
+                <div id="attach-dropzone" class="attach-dropzone" onclick="document.getElementById('task-files').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                  <span>Click to browse or drag & drop files here</span>
+                  <span class="attach-hint">PDF, Word, Excel, Images · Max 5MB per file</span>
+                  <input type="file" id="task-files" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.txt,.zip" style="display:none" onchange="handleFileSelect(event)" />
+                </div>
+                <div id="attach-preview" class="attach-preview"></div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn-ghost" onclick="clearForm()">Clear</button>
+                <button type="submit" class="btn-primary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+                  Assign Task
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- TEAM TASKS -->
+        <section id="section-team-tasks" class="section hidden">
+          <div class="section-header">
+            <div>
+              <h2>Team Tasks</h2>
+              <p class="section-sub">Tasks from your group/team</p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <select id="team-filter" onchange="filterTeamTasks()" class="filter-select">
+                <option value="all">All Groups</option>
+                <option value="Sales">Sales</option>
+                <option value="Accounts">Accounts</option>
+                <option value="SCM">SCM / Logistics</option>
+                <option value="Offer Management">Offer Management</option>
+                <option value="Admin">Admin</option>
+              </select>
+              <div class="view-switcher" id="team-view-switcher">
+                <button class="view-btn" id="team-view-list" onclick="setTeamView('list')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  List
+                </button>
+                <button class="view-btn active" id="team-view-kanban" onclick="setTeamView('kanban')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="11"/><rect x="17" y="3" width="4" height="15"/></svg>
+                  Kanban
+                </button>
+                <button class="view-btn" id="team-view-timeline" onclick="setTeamView('timeline')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><polyline points="8 8 3 12 8 16"/><polyline points="16 8 21 12 16 16"/></svg>
+                  Timeline
+                </button>
+                <button class="view-btn" id="team-view-calendar" onclick="setTeamView('calendar-tasks')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Calendar
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="team-task-container"></div>
+        </section>
+
+        <!-- CALENDAR -->
+        <section id="section-calendar" class="section hidden">
+          <div class="section-header">
+            <div>
+              <h2>Calendar</h2>
+              <p class="section-sub">Task schedule overview</p>
+            </div>
+            <div class="cal-nav">
+              <button class="btn-ghost" onclick="changeMonth(-1)">‹ Prev</button>
+              <span id="cal-month-label" class="cal-month-label"></span>
+              <button class="btn-ghost" onclick="changeMonth(1)">Next ›</button>
+            </div>
+          </div>
+          <div class="calendar-wrap glass">
+            <div class="cal-weekdays">
+              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+          </div>
+          <div class="cal-legend">
+            <span class="legend-dot high"></span> High Priority &nbsp;
+            <span class="legend-dot medium"></span> Medium &nbsp;
+            <span class="legend-dot low"></span> Low &nbsp;
+            <span class="legend-dot completed"></span> Completed
+          </div>
+        </section>
+
+        <!-- ALL TASKS (Admin) -->
+        <!-- ALL TASKS (Admin) -->
+        <section id="section-all-tasks" class="section hidden">
+          <div class="section-header">
+            <div>
+              <h2>All Tasks</h2>
+              <p class="section-sub">Organization-wide task view</p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <div class="view-switcher" id="all-view-switcher">
+                <button class="view-btn active" id="all-view-list" onclick="setAllView('list')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  List
+                </button>
+                <button class="view-btn" id="all-view-kanban" onclick="setAllView('kanban')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="11"/><rect x="17" y="3" width="4" height="15"/></svg>
+                  Kanban
+                </button>
+                <button class="view-btn" id="all-view-timeline" onclick="setAllView('timeline')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><polyline points="8 8 3 12 8 16"/><polyline points="16 8 21 12 16 16"/></svg>
+                  Timeline
+                </button>
+                <button class="view-btn" id="all-view-calendar" onclick="setAllView('calendar-tasks')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Calendar
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="all-task-container">
+            <div class="table-wrap glass" id="all-table-wrap">
+              <table class="task-table mobile-card-table" id="all-tasks-table">
+                <thead>
+                  <tr>
+                    <th><div onclick="toggleAllSort('id')" style="cursor:pointer;user-select:none"># <span id="sort-icon-id"></span></div></th>
+                    <th>
+                      <div onclick="toggleAllSort('title')" style="cursor:pointer;user-select:none">Title <span id="sort-icon-title"></span></div>
+                      <input type="text" id="all-col-title" class="col-search" placeholder="Filter..." oninput="filterAllTasks()" />
+                    </th>
+                    <th>
+                      <div onclick="toggleAllSort('assignedTo')" style="cursor:pointer;user-select:none">Assigned To <span id="sort-icon-assignedTo"></span></div>
+                      <input type="text" id="all-col-assignedTo" class="col-search" placeholder="Filter..." oninput="filterAllTasks()" />
+                    </th>
+                    <th>
+                      <div onclick="toggleAllSort('assignedBy')" style="cursor:pointer;user-select:none">Assigned By <span id="sort-icon-assignedBy"></span></div>
+                      <input type="text" id="all-col-assignedBy" class="col-search" placeholder="Filter..." oninput="filterAllTasks()" />
+                    </th>
+                    <th>
+                      <div onclick="toggleAllSort('category')" style="cursor:pointer;user-select:none">Category <span id="sort-icon-category"></span></div>
+                      <select id="all-col-category" class="col-search" onchange="filterAllTasks()">
+                        <option value="">All</option>
+                        <option value="General">General</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Accounts">Accounts</option>
+                        <option value="SCM/Logistics">SCM</option>
+                        <option value="Offer Management">Offer</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Customer Complaint">Complaint</option>
+                      </select>
+                    </th>
+                    <th>
+                      <div onclick="toggleAllSort('priority')" style="cursor:pointer;user-select:none">Priority <span id="sort-icon-priority"></span></div>
+                      <select id="all-col-priority" class="col-search" onchange="filterAllTasks()">
+                        <option value="">All</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                      </select>
+                    </th>
+                    <th>
+                      <div onclick="toggleAllSort('dueDate')" style="cursor:pointer;user-select:none">Due Date <span id="sort-icon-dueDate"></span></div>
+                      <input type="date" id="all-col-dueDate" class="col-search" onchange="filterAllTasks()" />
+                    </th>
+                    <th>
+                      <div onclick="toggleAllSort('status')" style="cursor:pointer;user-select:none">Status <span id="sort-icon-status"></span></div>
+                      <select id="all-col-status" class="col-search" onchange="filterAllTasks()">
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="overdue">Overdue</option>
+                      </select>
+                    </th>
+                    <th><div style="margin-top:10px">Actions</div></th>
+                  </tr>
+                </thead>
+                <tbody id="all-tasks-body"></tbody>
+              </table>
+            </div>
+            <div id="all-other-views-wrap" class="hidden"></div>
+          </div>
+        </section>
+
+        <!-- TEAM MANAGEMENT (Admin) -->
+        <section id="section-team-mgmt" class="section hidden">
+          <div class="section-header">
+            <div>
+              <h2>Team Management</h2>
+              <p class="section-sub">Employee directory & groups</p>
+            </div>
+            <div class="filter-bar">
+              <select id="team-group-filter" onchange="filterTeamMgmt()" class="filter-select">
+                <option value="all">All Groups</option>
+                <option value="Admin">Admin</option>
+                <option value="Sales">Sales</option>
+                <option value="Accounts">Accounts</option>
+                <option value="SCM">SCM</option>
+                <option value="Offer Management">Offer Management</option>
+                <option value="SCM/Offer">SCM/Offer</option>
+              </select>
+            </div>
+          </div>
+          <div class="team-grid" id="team-grid"></div>
+        </section>
+
+      </div><!-- end sections-wrap -->
+    </main>
+  </div>
+
+  <!-- TASK DETAIL MODAL -->
+  <div id="task-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-task-title">Task Title</h3>
+        <button onclick="closeModal()" class="modal-close">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <div class="status-update" id="status-update-area"></div>
+        <button class="btn-ghost" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT PROFILE MODAL -->
+  <div id="edit-profile-modal" class="modal-overlay hidden">
+    <div class="modal" style="max-width:400px; padding: 20px;">
+      <div class="modal-header">
+        <h3>Edit Profile</h3>
+        <button onclick="closeEditProfile()" class="modal-close">✕</button>
+      </div>
+      <form id="edit-profile-form" onsubmit="submitEditProfile(event)" style="display:flex;flex-direction:column;gap:12px;margin-top:10px">
+        <div class="form-group">
+          <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Employee ID</label>
+          <input type="text" id="edit-prof-id" style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px" />
+        </div>
+        <div class="form-group">
+          <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Name</label>
+          <input type="text" id="edit-prof-name" required style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px" />
+        </div>
+        <div class="form-group">
+          <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Designation</label>
+          <input type="text" id="edit-prof-desig" style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px" />
+        </div>
+        <div class="form-group">
+          <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Email Address</label>
+          <input type="email" id="edit-prof-email" required style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px" />
+        </div>
+        <div class="form-group">
+          <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Mobile Number</label>
+          <input type="text" id="edit-prof-mobile" style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px" />
+        </div>
+        <div class="form-row" style="display:flex;gap:10px">
+          <div class="form-group" style="flex:1">
+            <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Group</label>
+            <input type="text" id="edit-prof-group" style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px" />
+          </div>
+          <div class="form-group" style="flex:1">
+            <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Auth / Scope</label>
+            <input type="text" id="edit-prof-auth" style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px" />
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+          <button type="button" class="btn-ghost" onclick="closeEditProfile()" style="padding:6px 12px">Cancel</button>
+          <button type="submit" class="btn-primary" style="padding:6px 12px">Save Changes</button>
+        </div>
+    </div>
+  </div>
+
+  <!-- EDIT TASK MODAL -->
+  <div id="edit-task-modal" class="modal-overlay hidden">
+    <div class="modal" style="max-width:550px; padding: 20px;">
+      <div class="modal-header">
+        <h3>Edit Task</h3>
+        <button onclick="closeEditTask()" class="modal-close">✕</button>
+      </div>
+      <form id="edit-task-form" onsubmit="submitEditTask(event)" style="display:flex;flex-direction:column;gap:12px;margin-top:10px">
+        <div class="form-group">
+          <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Task Title</label>
+          <input type="text" id="edit-task-title" required style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px" />
+        </div>
+        <div class="form-group">
+          <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Description</label>
+          <textarea id="edit-task-desc" rows="3" style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px"></textarea>
+        </div>
+        <div class="form-row" style="display:flex;gap:10px">
+          <div class="form-group" style="flex:1">
+            <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Assign To</label>
+            <select id="edit-task-assignee" required style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px"></select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Due Date</label>
+            <input type="date" id="edit-task-due" required style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px" />
+          </div>
+        </div>
+        <div class="form-row" style="display:flex;gap:10px">
+          <div class="form-group" style="flex:1">
+            <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Priority</label>
+            <select id="edit-task-priority" style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label style="font-size:11px;font-weight:600;color:var(--text-secondary)">Category</label>
+            <select id="edit-task-category" style="width:100%;padding:8px;border:1px solid #dde1ef;border-radius:5px">
+              <option value="General">General</option>
+              <option value="Sales">Sales</option>
+              <option value="Accounts">Accounts</option>
+              <option value="SCM">SCM</option>
+              <option value="Customer Complaint">Customer Complaint</option>
+              <option value="Offer Management">Offer</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+          <button type="button" class="btn-ghost" onclick="closeEditTask()" style="padding:6px 12px">Cancel</button>
+          <button type="submit" class="btn-primary" style="padding:6px 12px">Save Updates</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- TOAST -->
+  <div id="toast-container"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/calendar.js"></script>
+</body>
+</html>
