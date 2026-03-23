@@ -61,6 +61,70 @@ function togglePass() {
   }
 }
 
+// ──────────────────────────────────────────
+// CHANGE PASSWORD
+// ──────────────────────────────────────────
+let isForcedPassChange = false;
+
+function openChangePassModal(forced = false) {
+  isForcedPassChange = forced;
+  document.getElementById('change-pass-modal').classList.remove('hidden');
+  document.getElementById('change-pass-current').value = '';
+  document.getElementById('change-pass-new').value = '';
+  document.getElementById('change-pass-confirm').value = '';
+  document.getElementById('change-pass-error').style.display = 'none';
+  
+  if (forced) {
+    document.getElementById('change-pass-close').style.display = 'none';
+    document.getElementById('change-pass-cancel-btn').style.display = 'none';
+    document.getElementById('change-pass-current-group').style.display = 'none';
+    document.getElementById('change-pass-msg').innerHTML = '<strong>Security Alert:</strong> Please set a unique new password to secure your account before continuing.';
+  } else {
+    document.getElementById('change-pass-close').style.display = 'block';
+    document.getElementById('change-pass-cancel-btn').style.display = 'block';
+    document.getElementById('change-pass-current-group').style.display = 'block';
+    document.getElementById('change-pass-msg').textContent = 'Update your account password here.';
+  }
+}
+
+function closeChangePassModal() {
+  if (isForcedPassChange) return;
+  document.getElementById('change-pass-modal').classList.add('hidden');
+}
+
+function submitChangePassword(e) {
+  e.preventDefault();
+  const current = document.getElementById('change-pass-current').value;
+  const nw = document.getElementById('change-pass-new').value;
+  const cf = document.getElementById('change-pass-confirm').value;
+  const err = document.getElementById('change-pass-error');
+  
+  if (!isForcedPassChange && current !== currentUser.password) {
+    err.textContent = 'Current password is incorrect.';
+    err.style.display = 'block';
+    return;
+  }
+  if (nw !== cf) {
+    err.textContent = 'New passwords do not match.';
+    err.style.display = 'block';
+    return;
+  }
+  
+  const emps = getEmployees();
+  const idx = emps.findIndex(em => em.id === currentUser.id);
+  if (idx !== -1) {
+    emps[idx].password = nw;
+    saveEmployees(emps);
+  }
+  
+  currentUser.password = nw;
+  localStorage.setItem('skc_current_user', JSON.stringify(currentUser));
+  
+  showToast('Password changed successfully! 🔒', 'success');
+  isForcedPassChange = false;
+  document.getElementById('change-pass-modal').classList.add('hidden');
+}
+
 function enterApp() {
   // Data already loaded by data.js initData()
   document.getElementById('login-page').classList.remove('active');
@@ -72,6 +136,10 @@ function enterApp() {
   showSection('dashboard');
   populateAssigneeDropdown();
   setupAdminUI();
+
+  if (currentUser.password === 'siddhi123' || currentUser.password === '123456') {
+      openChangePassModal(true);
+  }
 }
 
 function setupUserUI() {
