@@ -112,15 +112,7 @@ function populateAssigneeDropdown() {
   const sel = document.getElementById('task-assignee');
   sel.innerHTML = '<option value="">Select employee</option>';
 
-  // Determine who this user can assign to
-  const isAdmin = currentUser.role === 'admin' || currentUser.auth === 'All Group';
-  let assignable = getEmployees();
-  if (!isAdmin) {
-    // Managers can assign within their group
-    assignable = getEmployees().filter(e =>
-      e.group === currentUser.group || e.id === currentUser.id
-    );
-  }
+  const assignable = getEmployees();
 
   assignable.forEach(emp => {
     const opt = document.createElement('option');
