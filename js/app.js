@@ -20,7 +20,7 @@ function handleLogin(e) {
   const pass  = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-error');
 
-  const emp = EMPLOYEES.find(emp =>
+  const emp = getEmployees().find(emp =>
     emp.email.toLowerCase() === email && emp.password === pass
   );
 
@@ -62,7 +62,7 @@ function togglePass() {
 }
 
 function enterApp() {
-  initData();
+  // Data already loaded by data.js initData()
   document.getElementById('login-page').classList.remove('active');
   document.getElementById('login-page').classList.add('hidden');
   document.getElementById('app-page').classList.remove('hidden');
@@ -1438,10 +1438,9 @@ function showToast(msg, type = 'info') {
 }
 
 // ──────────────────────────────────────────
-// INIT
+// INIT — waits for Supabase data
 // ──────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  initData();
+function _appInit() {
   // Check session
   const saved = localStorage.getItem('skc_current_user');
   if (saved) {
@@ -1452,6 +1451,14 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem('skc_current_user');
     }
   }
+}
+
+// data.js fires 'dataReady' after Supabase/localStorage loads
+window.addEventListener('dataReady', _appInit);
+// Also handle case where dataReady fires before this script loads
+window.addEventListener('DOMContentLoaded', () => {
+  // If data was already ready before we attached the listener
+  if (window._dataAlreadyReady) _appInit();
 });
 
 // Modal close on overlay click
