@@ -306,7 +306,7 @@ function filterMyTasks() {
   const priorityFilter = document.getElementById('my-priority-filter').value;
   const today = new Date().toISOString().split('T')[0];
 
-  let tasks = getTasks().filter(t => t.assignedTo === currentUser.id);
+  let tasks = getTasks().filter(t => (t.assignedTo === currentUser.id || t.assignedTo === 'group:' + currentUser.group));
   tasks = tasks.map(t => {
     if (t.status !== 'completed' && t.status !== 'closed' && t.dueDate < today) return {...t, status: 'overdue'};
     return t;
@@ -483,7 +483,7 @@ function applyListFilters(containerId) {
     return t.title.toLowerCase().includes(nameVal) ||
            (assignee?.name || '').toLowerCase().includes(nameVal);
   });
-  if (teamVal !== 'all')     filtered = filtered.filter(t => getEmployee(t.assignedTo)?.group === teamVal);
+  if (teamVal !== 'all')     filtered = filtered.filter(t => (t.assignedTo === 'group:'+teamVal || getEmployee(t.assignedTo)?.group === teamVal));
   if (priorityVal !== 'all') filtered = filtered.filter(t => t.priority === priorityVal);
   if (statusVal !== 'all')   filtered = filtered.filter(t => t.status === statusVal);
 
@@ -689,8 +689,7 @@ function filterAllTasks() {
     if (fStatus && t.status !== fStatus) return false;
 
     if (fAssignedTo) {
-      const a = getEmployee(t.assignedTo);
-      if (!a || !a.name.toLowerCase().includes(fAssignedTo)) return false;
+      if (!getAssigneeName(t.assignedTo).toLowerCase().includes(fAssignedTo)) return false;
     }
     if (fAssignedBy) {
       const b = getEmployee(t.assignedBy);
@@ -704,8 +703,8 @@ function filterAllTasks() {
     if (allTasksSortCol === 'id') {
       valA = a.id; valB = b.id;
     } else if (allTasksSortCol === 'assignedTo') {
-      valA = (getEmployee(a.assignedTo)?.name || '').toLowerCase();
-      valB = (getEmployee(b.assignedTo)?.name || '').toLowerCase();
+      valA = getAssigneeName(a.assignedTo).toLowerCase();
+      valB = getAssigneeName(b.assignedTo).toLowerCase();
     } else if (allTasksSortCol === 'assignedBy') {
       valA = (getEmployee(a.assignedBy)?.name || '').toLowerCase();
       valB = (getEmployee(b.assignedBy)?.name || '').toLowerCase();
@@ -889,7 +888,7 @@ function submitTask(e) {
     id: 't' + Date.now(),
     title: document.getElementById('task-title').value.trim(),
     description: document.getElementById('task-desc').value.trim(),
-    assignedTo: parseInt(document.getElementById('task-assignee').value),
+    assignedTo: document.getElementById('task-assignee').value.startsWith('group:') ? document.getElementById('task-assignee').value : parseInt(document.getElementById('task-assignee').value),
     assignedBy: currentUser.id,
     category: document.getElementById('task-category').value,
     priority: document.getElementById('task-priority').value,
@@ -1051,14 +1050,7 @@ function openTaskModal(taskId) {
 
     <div class="modal-detail-row">
       <span class="modal-detail-label">Assigned To</span>
-      <span class="modal-detail-value">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="user-avatar small" style="background:${assignee?.color}">
-            ${assignee ? initials(assignee.name) : '?'}
-          </div>
-          ${assignee?.name || 'Unknown'} – ${assignee?.designation || ''}
-        </div>
-      </span>
+      <span class="modal-detail-value">${getAssigneeLabelHtml(task.assignedTo)}</span>
     </div>
     <div class="modal-detail-row">
       <span class="modal-detail-label">Assigned By</span>
@@ -1178,7 +1170,14 @@ function openEditTaskModal(id) {
   document.getElementById('edit-task-desc').value = task.description || '';
   
   const assigneeSel = document.getElementById('edit-task-assignee');
-  assigneeSel.innerHTML = '<option value="">Select Employee</option>' + getEmployees().map(e => `<option value="${e.id}">${e.name} (${e.designation})</option>`).join('');
+  assigneeSel.innerHTML = '<option value="">Select Assignee</option>';
+  const groups = [...new Set(getEmployees().map(e => e.group).filter(Boolean))];
+  const grpGroup = document.createElement('optgroup'); grpGroup.label = '── GROUPS ──';
+  groups.forEach(g => { const o = document.createElement('option'); o.value = 'group:'+g; o.textContent = 'Team: '+g; grpGroup.appendChild(o); });
+  assigneeSel.appendChild(grpGroup);
+  const eGroup = document.createElement('optgroup'); eGroup.label = '── EMPLOYEES ──';
+  getEmployees().forEach(e => { const o = document.createElement('option'); o.value = e.id; o.textContent = `${e.name} (${e.designation})`; eGroup.appendChild(o); });
+  assigneeSel.appendChild(eGroup);
   assigneeSel.value = task.assignedTo || '';
   
   document.getElementById('edit-task-due').value = task.dueDate || '';
@@ -1204,7 +1203,7 @@ function submitEditTask(e) {
 
   tasks[idx].title = document.getElementById('edit-task-title').value.trim();
   tasks[idx].description = document.getElementById('edit-task-desc').value.trim();
-  tasks[idx].assignedTo = parseInt(document.getElementById('edit-task-assignee').value);
+  const ev = document.getElementById('edit-task-assignee').value; tasks[idx].assignedTo = ev.startsWith('group:') ? ev : parseInt(ev);
   tasks[idx].dueDate = document.getElementById('edit-task-due').value;
   tasks[idx].priority = document.getElementById('edit-task-priority').value;
   tasks[idx].category = document.getElementById('edit-task-category').value;
@@ -1325,7 +1324,7 @@ function getVisibleTasks() {
   if (!isAdmin) {
     const myGroupIds = getEmployees().filter(e => e.group === currentUser.group).map(e => e.id);
     tasks = tasks.filter(t =>
-      t.assignedTo === currentUser.id ||
+      (t.assignedTo === currentUser.id || t.assignedTo === 'group:' + currentUser.group) ||
       t.assignedBy === currentUser.id ||
       myGroupIds.includes(t.assignedTo)
     );
@@ -1383,6 +1382,28 @@ function taskCard(task) {
 
 function initials(name) {
   return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function getAssigneeName(id) {
+  if (typeof id === 'string' && id.startsWith('group:')) return 'Team: ' + id.replace('group:', '');
+  const emp = getEmployee(id);
+  return emp ? emp.name : 'Unknown';
+}
+
+function getAssigneeLabelHtml(id) {
+  if (typeof id === 'string' && id.startsWith('group:')) {
+    return `<div style="display:flex;align-items:center;gap:8px">
+      <div class="user-avatar small" style="background:#4b5563">G</div>
+      Team: ${id.replace('group:', '')}
+    </div>`;
+  }
+  const emp = getEmployee(id);
+  return `<div style="display:flex;align-items:center;gap:8px">
+    <div class="user-avatar small" style="background:${emp ? emp.color : '#ccc'}">
+      ${emp ? initials(emp.name) : '?'}
+    </div>
+    ${emp ? emp.name : 'Unknown'} ${emp && emp.designation ? '– ' + emp.designation : ''}
+  </div>`;
 }
 
 function statusLabel(s) {
