@@ -4,6 +4,7 @@
 
 let currentUser = null;
 let activeSection = 'dashboard';
+let currentDashFilter = 'all'; 
 let myTaskView   = 'kanban';
 let teamTaskView = 'kanban';
 let allTaskView  = 'list';
@@ -256,21 +257,31 @@ function closeSidebar() {
 // ──────────────────────────────────────────
 // DASHBOARD
 // ──────────────────────────────────────────
+function setDashboardFilter(f) {
+  if (currentDashFilter === f) currentDashFilter = 'all';
+  else currentDashFilter = f;
+  renderDashboard();
+}
+
 function renderDashboard() {
-  const tasks = getVisibleTasks();
+  const allVisibleTasks = getVisibleTasks();
   const today = new Date().toISOString().split('T')[0];
 
   const stats = {
-    total: tasks.length,
-    completed: tasks.filter(t => t.status === 'completed' || t.status === 'closed').length,
-    inProgress: tasks.filter(t => t.status === 'in-progress').length,
-    pending: tasks.filter(t => t.status === 'pending').length,
-    overdue: tasks.filter(t => t.status !== 'completed' && t.status !== 'closed' && t.dueDate < today).length,
-    dueToday: tasks.filter(t => t.dueDate === today && t.status !== 'completed' && t.status !== 'closed').length,
+    total: allVisibleTasks.length,
+    completed: allVisibleTasks.filter(t => t.status === 'completed' || t.status === 'closed').length,
+    inProgress: allVisibleTasks.filter(t => t.status === 'in-progress').length,
+    pending: allVisibleTasks.filter(t => t.status === 'pending').length,
+    overdue: allVisibleTasks.filter(t => t.status === 'overdue').length,
   };
 
+  const isFiltered = currentDashFilter !== 'all';
+  const displayTasks = isFiltered 
+    ? (currentDashFilter === 'total' ? allVisibleTasks : allVisibleTasks.filter(t => t.status === currentDashFilter))
+    : allVisibleTasks;
+
   document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-card">
+    <div class="stat-card ${currentDashFilter === 'total' ? 'active-filter' : ''}" onclick="setDashboardFilter('total')" style="cursor:pointer">
       <div class="stat-icon purple">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       </div>
@@ -279,7 +290,7 @@ function renderDashboard() {
         <div class="stat-label">Total Tasks</div>
       </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card ${currentDashFilter === 'completed' ? 'active-filter' : ''}" onclick="setDashboardFilter('completed')" style="cursor:pointer">
       <div class="stat-icon green">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
@@ -289,7 +300,7 @@ function renderDashboard() {
         <div class="stat-change up">✓ ${stats.total ? Math.round(stats.completed/stats.total*100) : 0}% done</div>
       </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card ${currentDashFilter === 'in-progress' ? 'active-filter' : ''}" onclick="setDashboardFilter('in-progress')" style="cursor:pointer">
       <div class="stat-icon purple">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
@@ -298,7 +309,7 @@ function renderDashboard() {
         <div class="stat-label">In Progress</div>
       </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card ${currentDashFilter === 'pending' ? 'active-filter' : ''}" onclick="setDashboardFilter('pending')" style="cursor:pointer" id="stat-pending">
       <div class="stat-icon yellow">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       </div>
@@ -307,7 +318,7 @@ function renderDashboard() {
         <div class="stat-label">Pending</div>
       </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card ${currentDashFilter === 'overdue' ? 'active-filter' : ''}" onclick="setDashboardFilter('overdue')" style="cursor:pointer">
       <div class="stat-icon red">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       </div>
@@ -319,40 +330,52 @@ function renderDashboard() {
     </div>
   `;
 
-  // Recent tasks
-  const recent = [...tasks].sort((a,b) => b.createdAt > a.createdAt ? 1 : -1).slice(0, 6);
+  // Recent tasks (based on displayTasks)
+  const recent = [...displayTasks].sort((a,b) => b.createdAt > a.createdAt ? 1 : -1).slice(0, 6);
   const recentEl = document.getElementById('recent-task-list');
-  if (recent.length === 0) {
-    recentEl.innerHTML = emptyState('No tasks yet. Create your first task!');
-    return;
+  const recentTitle = document.querySelector('.recent-tasks h3');
+  if (recentTitle) {
+    recentTitle.textContent = isFiltered ? `Filtered Tasks (${statusLabel(currentDashFilter)})` : 'Recent Tasks';
   }
-  recentEl.innerHTML = recent.map(t => {
-    const assignee = getEmployee(t.assignedTo);
-    const statusCls = t.status.replace('-', '-');
-    return `
-      <div class="recent-task-item" onclick="openTaskModal('${t.id}')">
-        <div class="recent-task-info">
-          <div class="recent-task-title">${t.title}</div>
-          <div class="recent-task-sub">
-            → ${assignee ? assignee.name : 'Unknown'} &nbsp;•&nbsp; Due: ${formatDate(t.dueDate)}
+
+  if (recent.length === 0) {
+    recentEl.innerHTML = emptyState(isFiltered ? `No ${statusLabel(currentDashFilter)} tasks found.` : 'No tasks yet. Create your first task!');
+  } else {
+    recentEl.innerHTML = recent.map(t => {
+      const assignee = getEmployee(t.assignedTo);
+      return `
+        <div class="recent-task-item" onclick="openTaskModal('${t.id}')">
+          <div class="recent-task-info">
+            <div class="recent-task-title">${t.title}</div>
+            <div class="recent-task-sub">
+              → ${assignee ? assignee.name : 'Unknown'} &nbsp;•&nbsp; Due: ${formatDate(t.dueDate)}
+            </div>
+          </div>
+          <div class="recent-task-badges">
+            <span class="badge badge-${t.priority}">${t.priority}</span>
+            <span class="badge badge-${t.status}">${statusLabel(t.status)}</span>
           </div>
         </div>
-        <div class="recent-task-badges">
-          <span class="badge badge-${t.priority}">${t.priority}</span>
-          <span class="badge badge-${t.status}">${statusLabel(t.status)}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  }
 
-  // Draw charts
+  // Draw charts (based on displayTasks)
   setTimeout(() => {
-    drawStatusChart(stats);
-    drawPriorityChart(tasks);
+    // If filtered, status chart is less interesting but we'll still draw it with the subset
+    // calculating stats for the chart from displayTasks
+    const chartStats = {
+        completed: displayTasks.filter(t => t.status === 'completed' || t.status === 'closed').length,
+        inProgress: displayTasks.filter(t => t.status === 'in-progress').length,
+        pending: displayTasks.filter(t => t.status === 'pending').length,
+        overdue: displayTasks.filter(t => t.status === 'overdue').length,
+    };
+    drawStatusChart(chartStats);
+    drawPriorityChart(displayTasks);
   }, 100);
 
-  // Notifications
-  buildNotifications(tasks);
+  // Notifications (always use all visible tasks)
+  buildNotifications(allVisibleTasks);
 }
 
 // ──────────────────────────────────────────
@@ -404,19 +427,47 @@ function filterTeamTasks() {
   const today  = new Date().toISOString().split('T')[0];
   const isAdmin = currentUser.role === 'admin' || currentUser.auth === 'All Group';
 
-  let tasks = getTasks().map(t => {
+  let allTasks = getTasks().map(t => {
     if (t.status !== 'completed' && t.status !== 'closed' && t.dueDate < today) return {...t, status: 'overdue'};
     return t;
   });
-  if (!isAdmin) {
-    const myGroupMembers = getEmployees().filter(e => e.group === currentUser.group).map(e => e.id);
-    tasks = tasks.filter(t => myGroupMembers.includes(t.assignedTo));
+
+  let tasksToShow = [];
+
+  if (isAdmin) {
+    tasksToShow = allTasks;
+  } else {
+    const emps = getEmployees();
+    const myGroupMembers = emps.filter(e => e.group === currentUser.group).map(e => e.id);
+    
+    tasksToShow = allTasks.filter(t => {
+      // 1. Same group?
+      if (myGroupMembers.includes(t.assignedTo)) return true;
+      
+      // 2. Kumar N team Offermanagement task show in team Task of vandita also?
+      if (currentUser.name.includes('Vanditha')) {
+          // If task is 'Offer Management' and assigned to Kumar N (or team members if we had more info)
+          // Let's check for category match AND Kumar N's id (7)
+          if ((t.category === 'Offer Management' || t.category === 'Sourcing and Offer') && t.assignedTo === 7) return true;
+      }
+      
+      // 3. In Ranjan Task show the Offer Mangement and SCM. Logistic task
+      if (currentUser.name.includes('Ranjan')) {
+          const scmOfferCats = ['Offer Management', 'SCM/Logistics', 'SCM', 'Offer', 'Logistics'];
+          if (scmOfferCats.includes(t.category)) return true;
+      }
+
+      return false;
+    });
   }
+
+  // Apply group filter if not "all"
   if (filter !== 'all') {
-    const groupMembers = getEmployees().filter(e => e.group === filter || e.auth.includes(filter)).map(e => e.id);
-    tasks = tasks.filter(t => groupMembers.includes(t.assignedTo));
+    const matchingEmps = getEmployees().filter(e => e.group === filter || e.auth.includes(filter)).map(e => e.id);
+    tasksToShow = tasksToShow.filter(t => matchingEmps.includes(t.assignedTo) || t.category === filter);
   }
-  renderTasksView(tasks, 'team-task-container', teamTaskView);
+
+  renderTasksView(tasksToShow, 'team-task-container', teamTaskView);
 }
 
 // ──────────────────────────────────────────

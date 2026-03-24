@@ -313,6 +313,11 @@
   box-shadow: 0 1px 6px rgba(60,70,120,0.06);
 }
 .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(60,70,120,0.10); }
+.stat-card.active-filter {
+  border-color: var(--accent);
+  background: #f5f7ff;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
+}
 .stat-icon {
   width: 40px; height: 40px;
   border-radius: var(--radius-sm);
