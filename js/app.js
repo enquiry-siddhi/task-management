@@ -5,6 +5,7 @@
 let currentUser = null;
 let activeSection = 'dashboard';
 let currentDashFilter = 'all'; 
+let dashboardScope    = 'all'; // all, toMe, byMe, team
 let myTaskView   = 'kanban';
 let teamTaskView = 'kanban';
 let allTaskView  = 'list';
@@ -260,6 +261,16 @@ function closeSidebar() {
 function setDashboardFilter(f) {
   if (currentDashFilter === f) currentDashFilter = 'all';
   else currentDashFilter = f;
+  renderDashboard();
+}
+
+function setDashboardScope(s) {
+  dashboardScope = s;
+  // Update buttons
+  document.querySelectorAll('.scope-btn').forEach(btn => {
+    if (btn.dataset.scope === s) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
   renderDashboard();
 }
 
@@ -1443,13 +1454,24 @@ function getVisibleTasks() {
   const isAdmin = currentUser.role === 'admin' || currentUser.auth === 'All Group';
   let tasks = getTasks();
 
-  if (!isAdmin) {
-    const myGroupIds = getEmployees().filter(e => e.group === currentUser.group).map(e => e.id);
-    tasks = tasks.filter(t =>
-      (t.assignedTo === currentUser.id || t.assignedTo === 'group:' + currentUser.group) ||
-      t.assignedBy === currentUser.id ||
-      myGroupIds.includes(t.assignedTo)
-    );
+  if (dashboardScope === 'toMe') {
+    tasks = tasks.filter(t => t.assignedTo === currentUser.id || t.assignedTo === 'group:' + currentUser.group);
+  } else if (dashboardScope === 'byMe') {
+    tasks = tasks.filter(t => t.assignedBy === currentUser.id);
+  } else if (dashboardScope === 'team') {
+    const emps = getEmployees();
+    const myGroupMembers = emps.filter(e => e.group === currentUser.group).map(e => e.id);
+    tasks = tasks.filter(t => myGroupMembers.includes(t.assignedTo) || t.assignedTo === 'group:' + currentUser.group);
+  } else {
+    // 'all'
+    if (!isAdmin) {
+      const myGroupIds = getEmployees().filter(e => e.group === currentUser.group).map(e => e.id);
+      tasks = tasks.filter(t =>
+        (t.assignedTo === currentUser.id || t.assignedTo === 'group:' + currentUser.group) ||
+        t.assignedBy === currentUser.id ||
+        myGroupIds.includes(t.assignedTo)
+      );
+    }
   }
 
   return tasks.map(t => {

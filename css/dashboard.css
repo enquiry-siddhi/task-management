@@ -927,3 +927,64 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* DASHBOARD SLICER */
+.dash-slicer {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  margin-bottom: 20px;
+  width: fit-content;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.scope-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scope-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+}
+
+.scope-btn:hover {
+  background: rgba(99, 102, 241, 0.05);
+  color: var(--accent);
+}
+
+.scope-btn.active {
+  background: white;
+  color: var(--accent);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .dash-slicer {
+    overflow-x: auto;
+    width: 100%;
+    gap: 4px;
+  }
+  .scope-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .scope-btn span {
+    display: none;
+  }
+}
