@@ -446,12 +446,15 @@ function filterTeamTasks() {
       
       // 2. Kumar N team Offermanagement task show in team Task of vandita also?
       if (currentUser.name.includes('Vanditha')) {
-          // If task is 'Offer Management' and assigned to Kumar N (or team members if we had more info)
-          // Let's check for category match AND Kumar N's id (7)
           if ((t.category === 'Offer Management' || t.category === 'Sourcing and Offer') && t.assignedTo === 7) return true;
       }
+
+      // 3. Kumar N sees Offer Management tasks (including Vandita's)
+      if (currentUser.name.includes('Kumar N')) {
+          if (t.category === 'Offer Management' || getEmployee(t.assignedTo)?.group === 'Offer Management') return true;
+      }
       
-      // 3. In Ranjan Task show the Offer Mangement and SCM. Logistic task
+      // 4. In Ranjan Task show the Offer Mangement and SCM. Logistic task
       if (currentUser.name.includes('Ranjan')) {
           const scmOfferCats = ['Offer Management', 'SCM/Logistics', 'SCM', 'Offer', 'Logistics'];
           if (scmOfferCats.includes(t.category)) return true;
