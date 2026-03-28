@@ -111,20 +111,17 @@ function submitChangePassword(e) {
     err.style.display = 'block';
     return;
   }
-  if (nw === 'siddhi123' || nw === '123456') {
-    err.textContent = 'Please choose a stronger, unique password.';
-    err.style.display = 'block';
-    return;
-  }
   
   const emps = getEmployees();
   const idx = emps.findIndex(em => em.id === currentUser.id);
   if (idx !== -1) {
     emps[idx].password = nw;
+    emps[idx].passwordChanged = true;
     saveEmployees(emps);
   }
   
   currentUser.password = nw;
+  currentUser.passwordChanged = true;
   localStorage.setItem('skc_current_user', JSON.stringify(currentUser));
   
   showToast('Password changed successfully! 🔒', 'success');
@@ -144,7 +141,7 @@ function enterApp() {
   populateAssigneeDropdown();
   setupAdminUI();
 
-  if (currentUser.password === 'siddhi123' || currentUser.password === '123456') {
+  if (currentUser.password === 'siddhi123' && !currentUser.passwordChanged) {
       openChangePassModal(true);
   }
 }
