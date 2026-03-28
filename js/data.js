@@ -254,6 +254,16 @@ async function _syncEmployeesToSupabase(emps) {
   }
 }
 
+async function deleteTaskFromSupabase(taskId) {
+  const sb = getSupabase();
+  if (!sb) return;
+  try {
+    await sb.from('tasks').delete().eq('id', taskId);
+  } catch (err) {
+    console.warn('[Supabase] Delete error:', err.message);
+  }
+}
+
 // ─── Load from Supabase then fall back to localStorage ─────
 
 async function _loadFromSupabase(isBackgroundSync = false) {
@@ -268,7 +278,7 @@ async function _loadFromSupabase(isBackgroundSync = false) {
 
     let dataChanged = false;
 
-    if (!te && taskRows && taskRows.length > 0) {
+    if (!te && taskRows) {
       const parsedTasks = taskRows.map(r => r.data).sort((a, b) => (a.id || '').localeCompare(b.id || ''));
       const oldTasks = [...(_tasksCache || [])].sort((a, b) => (a.id || '').localeCompare(b.id || ''));
       if (JSON.stringify(oldTasks) !== JSON.stringify(parsedTasks)) {
@@ -278,7 +288,7 @@ async function _loadFromSupabase(isBackgroundSync = false) {
       }
     }
 
-    if (!ee && empRows && empRows.length > 0) {
+    if (!ee && empRows) {
       const parsedEmps = empRows.map(r => r.data).sort((a, b) => (a.id || 0) - (b.id || 0));
       const oldEmps = [...(_employeesCache || [])].sort((a, b) => (a.id || 0) - (b.id || 0));
       if (JSON.stringify(oldEmps) !== JSON.stringify(parsedEmps)) {

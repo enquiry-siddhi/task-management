@@ -1399,6 +1399,9 @@ function deleteTask(taskId) {
   if (!confirm('Delete this task permanently?')) return;
   const tasks = getTasks().filter(t => t.id !== taskId);
   saveTasks(tasks);
+  if (typeof deleteTaskFromSupabase === 'function') {
+    deleteTaskFromSupabase(taskId);
+  }
   showToast('Task deleted', 'info');
   renderAllTasks();
 }
