@@ -111,6 +111,11 @@ function submitChangePassword(e) {
     err.style.display = 'block';
     return;
   }
+  if (nw === 'siddhi123' || nw === '123456') {
+    err.textContent = 'Please choose a stronger, unique password.';
+    err.style.display = 'block';
+    return;
+  }
   
   const emps = getEmployees();
   const idx = emps.findIndex(em => em.id === currentUser.id);
