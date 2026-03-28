@@ -1147,7 +1147,10 @@ function removeAttachment(id) {
 // ──────────────────────────────────────────
 // TASK MODAL
 // ──────────────────────────────────────────
+let currentOpenTaskId = null;
+
 function openTaskModal(taskId) {
+  currentOpenTaskId = taskId;
   const tasks = getTasks();
   const today = new Date().toISOString().split('T')[0];
   const task = tasks.find(t => t.id === taskId);
@@ -1286,6 +1289,7 @@ function openTaskModal(taskId) {
 function closeModal() {
   document.getElementById('task-modal').classList.add('hidden');
   document.body.style.overflow = '';
+  currentOpenTaskId = null;
 }
 
 // ──────────────────────────────────────────
@@ -1621,4 +1625,20 @@ window.addEventListener('DOMContentLoaded', () => {
 // Modal close on overlay click
 document.getElementById('task-modal')?.addEventListener('click', function(e) {
   if (e.target === this) closeModal();
+});
+
+// Refresh UI when data dynamically updates from Supabase
+window.addEventListener('dataSyncComplete', () => {
+  if (activeSection === 'dashboard') renderDashboard();
+  else if (activeSection === 'my-tasks') renderMyTasks();
+  else if (activeSection === 'team-tasks') renderTeamTasks();
+  else if (activeSection === 'all-tasks') renderAllTasks();
+  else if (activeSection === 'calendar') {
+     if (typeof renderCalendar === 'function') renderCalendar();
+  }
+  else if (activeSection === 'team-mgmt') renderTeamMgmt();
+
+  if (currentOpenTaskId && !document.getElementById('task-modal').classList.contains('hidden')) {
+    openTaskModal(currentOpenTaskId);
+  }
 });

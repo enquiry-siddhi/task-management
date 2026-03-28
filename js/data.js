@@ -256,7 +256,7 @@ async function _syncEmployeesToSupabase(emps) {
 
 // ─── Load from Supabase then fall back to localStorage ─────
 
-async function _loadFromSupabase() {
+async function _loadFromSupabase(isBackgroundSync = false) {
   const sb = getSupabase();
   if (!sb) return false;
 
@@ -266,14 +266,30 @@ async function _loadFromSupabase() {
       sb.from('employees').select('data')
     ]);
 
+    let dataChanged = false;
+
     if (!te && taskRows && taskRows.length > 0) {
-      _tasksCache = taskRows.map(r => r.data);
-      localStorage.setItem('skc_tasks', JSON.stringify(_tasksCache));
+      const parsedTasks = taskRows.map(r => r.data).sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+      const oldTasks = [...(_tasksCache || [])].sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+      if (JSON.stringify(oldTasks) !== JSON.stringify(parsedTasks)) {
+        _tasksCache = parsedTasks;
+        localStorage.setItem('skc_tasks', JSON.stringify(_tasksCache));
+        dataChanged = true;
+      }
     }
 
     if (!ee && empRows && empRows.length > 0) {
-      _employeesCache = empRows.map(r => r.data);
-      localStorage.setItem('skc_employees', JSON.stringify(_employeesCache));
+      const parsedEmps = empRows.map(r => r.data).sort((a, b) => (a.id || 0) - (b.id || 0));
+      const oldEmps = [...(_employeesCache || [])].sort((a, b) => (a.id || 0) - (b.id || 0));
+      if (JSON.stringify(oldEmps) !== JSON.stringify(parsedEmps)) {
+        _employeesCache = parsedEmps;
+        localStorage.setItem('skc_employees', JSON.stringify(_employeesCache));
+        dataChanged = true;
+      }
+    }
+
+    if (isBackgroundSync && dataChanged) {
+      window.dispatchEvent(new Event('dataSyncComplete'));
     }
 
     return true;
@@ -281,6 +297,32 @@ async function _loadFromSupabase() {
     console.warn('[Supabase] Load error:', err.message);
     return false;
   }
+}
+
+// ─── Realtime Sync ─────────────────────────────
+
+function enableRealtimeSync() {
+  const sb = getSupabase();
+  if (!sb) return;
+
+  // 1. Supabase Realtime via Postgres Changes
+  try {
+    sb.channel('public-db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, payload => {
+        _loadFromSupabase(true);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'employees' }, payload => {
+        _loadFromSupabase(true);
+      })
+      .subscribe();
+  } catch (err) {
+    console.warn('[Supabase] Realtime error:', err.message);
+  }
+
+  // 2. Fallback polling every 5 seconds for robustness
+  setInterval(() => {
+    _loadFromSupabase(true);
+  }, 5000);
 }
 
 // ─── Initialise ────────────────────────────────
@@ -318,6 +360,9 @@ async function initData() {
   // Signal app.js that data is ready
   window._dataAlreadyReady = true;
   window.dispatchEvent(new Event('dataReady'));
+
+  // Start real-time sync after initial load
+  setTimeout(enableRealtimeSync, 1000);
 }
 
 // Run immediately
