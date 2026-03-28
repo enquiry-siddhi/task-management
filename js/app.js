@@ -1037,7 +1037,7 @@ function submitTask(e) {
   };
 
   tasks.push(newTask);
-  saveTasks(tasks);
+  saveTasks(tasks, newTask);
 
   showToast('✓ Task assigned successfully!', 'success');
   clearForm();
@@ -1346,8 +1346,7 @@ function submitEditTask(e) {
   tasks[idx].dueDate = document.getElementById('edit-task-due').value;
   tasks[idx].priority = document.getElementById('edit-task-priority').value;
   tasks[idx].category = document.getElementById('edit-task-category').value;
-  
-  saveTasks(tasks);
+  saveTasks(tasks, tasks[idx]);
   showToast('✓ Task updated successfully', 'success');
   closeEditTask();
   
@@ -1370,7 +1369,7 @@ function updateTaskStatus(taskId, newStatus) {
     text: 'Status changed to ' + statusLabel(newStatus) + ' by ' + currentUser.name,
     time: new Date().toLocaleString('en-IN')
   });
-  saveTasks(tasks);
+  saveTasks(tasks, tasks[idx]);
   showToast('Task updated to ' + statusLabel(newStatus), 'success');
   openTaskModal(taskId);
 
@@ -1392,7 +1391,7 @@ function saveTaskRemarks(taskId) {
     text: 'Remarks updated by ' + currentUser.name,
     time: new Date().toLocaleString('en-IN')
   });
-  saveTasks(tasks);
+  saveTasks(tasks, tasks[idx]);
   showToast('Remarks saved', 'success');
   openTaskModal(taskId);
 }
@@ -1400,7 +1399,8 @@ function saveTaskRemarks(taskId) {
 function deleteTask(taskId) {
   if (!confirm('Delete this task permanently?')) return;
   const tasks = getTasks().filter(t => t.id !== taskId);
-  saveTasks(tasks);
+  _tasksCache = tasks;
+  localStorage.setItem('skc_tasks', JSON.stringify(tasks));
   if (typeof deleteTaskFromSupabase === 'function') {
     deleteTaskFromSupabase(taskId);
   }

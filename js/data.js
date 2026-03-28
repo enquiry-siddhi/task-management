@@ -122,12 +122,16 @@ function getTasks() {
   return _tasksCache || [];
 }
 
-function saveTasks(tasks) {
+function saveTasks(tasks, changedTask = null) {
   _tasksCache = tasks;
   // Write to localStorage as fallback
   localStorage.setItem('skc_tasks', JSON.stringify(tasks));
   // Sync to Supabase async (non-blocking)
-  _syncTasksToSupabase(tasks);
+  if (changedTask) {
+    _syncTasksToSupabase([changedTask]);
+  } else {
+    _syncTasksToSupabase(tasks);
+  }
 }
 
 function getEmployees() {
